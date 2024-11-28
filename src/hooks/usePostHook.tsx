@@ -1,9 +1,9 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation } from "react-query";
 import { toast } from "sonner";
 
 export const usePostData = () => {
   const postOurData = async (fromData: Record<string, string | boolean>) => {
-    const response = await fetch(process.env.SUBMIT_URL!, {
+    const response = await fetch("https://jsonplaceholder.typicode.com/posts", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -13,25 +13,21 @@ export const usePostData = () => {
     });
 
     if (!response.ok) {
-      throw new Error("Failed to create restaurant");
+      throw new Error("Failed to create data");
     }
 
     return response.json();
   };
 
-  const {
-    mutate: createRestaurant,
-    isSuccess,
-    error,
-  } = useMutation(postOurData);
+  const { mutate: SubmitForm, isSuccess, error } = useMutation(postOurData);
 
   if (isSuccess) {
-    toast.success("Restaurant created!");
+    toast.success("data added  successfully!");
   }
 
-  if (error) {
-    toast.error("Unable to update restaurant");
+  if (error instanceof Error) {
+    toast.error(error.message);
   }
 
-  return { createRestaurant };
+  return { SubmitForm };
 };

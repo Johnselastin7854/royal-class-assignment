@@ -1,14 +1,17 @@
 "use client";
 import React, { useState } from "react";
-import formData from "@/data/formData.json";
-import { Input } from "./ui/input";
-import { Checkbox } from "./ui/checkbox";
-import { Button } from "./ui/button";
 import { toast } from "sonner";
 import Link from "next/link";
-import { MoveRight } from "lucide-react";
+import { Loader2, MoveRight } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
+import { useFetchData } from "@/hooks/useFetchHook";
+import { usePostData } from "@/hooks/usePostHook";
 
-const DynamicForm = () => {
+const Task2 = () => {
+  const { formFieldData, isLoading, error } = useFetchData();
+  const { SubmitForm } = usePostData();
   const [formStae, setFormStae] = useState<Record<string, string | boolean>>(
     {}
   );
@@ -35,12 +38,12 @@ const DynamicForm = () => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const errors: Record<string, string> = {};
 
-    formData.forEach((field) => {
+    formFieldData?.forEach((field) => {
       if (
         field.required &&
         !formStae[field.name] &&
@@ -52,6 +55,7 @@ const DynamicForm = () => {
     setErrors(errors);
 
     if (Object.keys(errors).length === 0) {
+      SubmitForm(formStae);
       toast("Form submitted successfully!");
       setFormStae({});
       setCheckboxValues({});
@@ -63,13 +67,20 @@ const DynamicForm = () => {
     }
   };
 
+  if (isLoading)
+    return (
+      <p className="flex items-center justify-center min-h-screen text-lg gap-3">
+        Loading... <Loader2 className="animate-spin" />
+      </p>
+    );
+  if (error) return <p>Error fetching form data.</p>;
   return (
     <div className="flex items-center justify-center min-h-screen flex-col gap-10">
       <form
-        className="space-y-5 border border-gray-300 rounded-sm p-10"
+        className="space-y-5 border border-gray-300 rounded-sm p-10 max-w-[500px]"
         onSubmit={handleSubmit}
       >
-        {formData?.map((field, index) => {
+        {formFieldData?.map((field, index) => {
           switch (field.variant) {
             case "Input":
               return (
@@ -119,10 +130,10 @@ const DynamicForm = () => {
       </form>
 
       <Link href={"/task-2"} className="flex gap-5">
-        Go To Task 2 <MoveRight />{" "}
+        Go To Task 3 <MoveRight />{" "}
       </Link>
     </div>
   );
 };
 
-export default DynamicForm;
+export default Task2;
