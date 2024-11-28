@@ -16,7 +16,7 @@ export const useFetchData = () => {
         description: "This is your public display name.",
         disabled: false,
         label: data.title,
-        name: "name_8066610423",
+        name: "username",
         placeholder: "shadcn",
         required: true,
         rowIndex: 0,
@@ -26,7 +26,7 @@ export const useFetchData = () => {
       },
       {
         label: "Age",
-        name: "age_12345",
+        name: "age",
         placeholder: "Enter your age",
         required: true,
         rowIndex: 1,

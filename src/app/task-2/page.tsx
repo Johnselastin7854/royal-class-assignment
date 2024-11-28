@@ -1,14 +1,19 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 import Link from "next/link";
-import { Loader2, MoveRight } from "lucide-react";
+import { Contact, Loader2, MoveRight, Trophy } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { useFetchData } from "@/hooks/useFetchHook";
 import { usePostData } from "@/hooks/usePostHook";
-
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 const Task2 = () => {
   const { formFieldData, isLoading, error } = useFetchData();
   const { SubmitForm } = usePostData();
@@ -19,6 +24,18 @@ const Task2 = () => {
     {}
   );
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [interactions, setInteractions] = useState(0);
+
+  useEffect(() => {
+    if (formFieldData) {
+      const initialFormState: Record<string, string | boolean> = {};
+      formFieldData.forEach((field) => {
+        initialFormState[field.name] = field.value || "";
+      });
+      setFormStae(initialFormState);
+    }
+  }, [formFieldData]);
 
   const handleChange = (name: string, value: string | boolean) => {
     setFormStae((prev) => ({
@@ -36,6 +53,8 @@ const Task2 = () => {
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
+
+    setInteractions((prev) => prev + 1);
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -55,16 +74,32 @@ const Task2 = () => {
     setErrors(errors);
 
     if (Object.keys(errors).length === 0) {
-      SubmitForm(formStae);
-      toast("Form submitted successfully!");
-      setFormStae({});
-      setCheckboxValues({});
-      setErrors({});
+      setIsSubmitting(true);
+
+      try {
+        toast("Submitting....");
+        SubmitForm(formStae);
+        toast("Form submitted successfully!");
+        setFormStae({});
+        setCheckboxValues({});
+        setErrors({});
+      } catch (e) {
+        toast.error("Failed to submit form.");
+      } finally {
+        setIsSubmitting(false);
+      }
     } else {
       toast.error("All fields are required");
 
       setErrors(errors);
     }
+  };
+
+  const handleReset = () => {
+    setFormStae({});
+    setCheckboxValues({});
+    setErrors({});
+    setInteractions(0);
   };
 
   if (isLoading)
@@ -74,6 +109,7 @@ const Task2 = () => {
       </p>
     );
   if (error) return <p>Error fetching form data.</p>;
+
   return (
     <div className="flex items-center justify-center min-h-screen flex-col gap-10">
       <form
@@ -124,13 +160,37 @@ const Task2 = () => {
               return null;
           }
         })}
-        <Button type="submit" className="w-full">
-          Submit
+
+        {formStae["age"] && Number(formStae["age"]) > 18 && (
+          <div className="space-x-2">
+            <label htmlFor="contactMethod">Contact Method</label>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline">
+                  Options <Contact />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56">
+                <DropdownMenuItem>Email</DropdownMenuItem>
+
+                <DropdownMenuItem>Phone</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        )}
+        <Button type="submit" className="w-full" disabled={isSubmitting}>
+          {isSubmitting ? "Submitting..." : "Submit"}
+        </Button>
+
+        <Button type="button" className="w-full mt-2" onClick={handleReset}>
+          Reset Form
         </Button>
       </form>
 
-      <Link href={"/task-2"} className="flex gap-5">
-        Go To Task 3 <MoveRight />{" "}
+      <p>Form Interactions: {interactions}</p>
+
+      <Link href={"/"} className="flex gap-5">
+        Go To Home <MoveRight />{" "}
       </Link>
     </div>
   );
